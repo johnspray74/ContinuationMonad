@@ -27,6 +27,9 @@ It's to show how monads work with actual code, and how they compose function, so
 This is all to show that ALA is both more flexible/powerful and simpler than using monads.
 
 This example is one of a set of examples implementing different types of monads.
+In this example, the composed functions just add numbers, but because they are being used with coninuation monad they can take time without blocking the thread.
+The first composed function does a delay. The second similates I/O by outputting to the console and then asking you to input a number.
+Note that the whole program runs on one thread without blocking (until the final ReadKey()).
 
 If you don't understand monads, the section in chapter 3 explains monads. All other attempts to explain monads that I have found have failed in my opinion.
 It wasn't until I implemented them myself with this set of examples (for the purpose of comparing what they do and how they work with ALA) that
@@ -39,8 +42,8 @@ I realised that all the previous explanations I had read had been inadequate. So
 2. Open the solution in Visual Studio 2019 or later
 3. Import the needed nuget package (which is required only to get async/await working properly using a single thread in a console application).
 4. When the application runs, you will see the program output the input to the first monad.
-5. The first monad does a delay and then you see its output. Then you see the input to the second monad which does I/O.
-6. Enter a number and the second monad will then finish.
+5. The first composed function does a delay of 3 seconds and then you see its monad output. Then you immediately see that result input to the second monad.
+6. The second composed function does output and input. Enter a number (within 7s before the main thread blocks) and the second monad will then show its output.
 
 
 ## Built with
