@@ -17,12 +17,13 @@
 
 # About the project
 
-Demo code of a continuation monad and equivalent ALA functionality. Code used for online book at abstractionlayeredarchitecture.com 
+Demo code of a continuation monad and equivalent ALA functionality in C#. Code used for online book at abstractionlayeredarchitecture.com 
 
 The purpose of this project is example code to compare monads and ALA ([Abstraction Layered Architecture](AbstractionLayeredArchitecture.md)).
 
 It's not intended as a useful implementation of a Continuation monad.
-It's to show how monads work to compose function with actual code, so that this can be compared with how ALA composes things and hows its code works.
+It's to show how monads work with actual code, and how they compose function, so that this can be compared with how ALA code works and how composes.
+
 This is all to show that ALA is both more flexible/powerful and simpler than using monads.
 
 This example is one of a set of examples implementing different types of monads.
@@ -60,8 +61,8 @@ Contributions are what make the open source community such an amazing place to b
 
 ### Future work
 
-If someone who expert with C# would like to look over my code and improve it that would be appreciated.
-If someone who is an expert with Haskel, closure, Swift, Java, Python or Rust would like to contribute a version of this example code that would be great.
+If someone who is expert with C# would like to look over my code and improve it that would be appreciated.
+If someone who is expert with Haskel, closure, Swift, Java, Python or Rust would like to contribute a version of this example code that would be great.
 
 ## Background
 
