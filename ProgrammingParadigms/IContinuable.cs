@@ -3,8 +3,9 @@ namespace ProgrammingParadigms
 {
 
 
-    // The IContuable interface is only used as the type the Bind function.
-    // Put it on all domain abstraction classes that are sources, that is can be wired to another IContinuable class using Bind.
+    // The IContuable interface is only used as the type for the Bind function. (The interface itself is empty)
+    // Put it on all domain abstraction classes that are sources, that is can be wired using Bind.
+    // For example Both continuation and ValueToContinuable use this interface.
     // The IContinuation interface is the one actually used to implement the Continuation dataflow programming paradigm
     // If instead of .Bind(function) you always use the longer full ALA syntax ".WireIn(new Continuation(function))" then you could delete the Bind function and this interface.
     // It would be nice if IConinuable was used as the programming paradigm interface, and iContinuation were deleted.

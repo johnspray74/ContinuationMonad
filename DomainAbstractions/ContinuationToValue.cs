@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace DomainAbstractions
 {
+    // You can WireIn and instance of this class at the end of the chain of maonads in order to get a action delegate called with the value.
 
 
     public class ContinuationToValue<T> : IContinuation<T> // input port
@@ -22,6 +23,10 @@ namespace DomainAbstractions
             action(await previousTask);
         }
     }
+
+
+    // You can use this extension method to instantiate a ContinuationToValue and call WireIn. 
+    // You would normally use this in ALA, it is only here to allow monad code to use ALA instead of monads.
 
 
     public static class ContinueWithExtensionMethod
