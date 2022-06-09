@@ -1,9 +1,8 @@
 ﻿// This source file implements the Task monad
 // This monad is sometimes referred to as the ContinuationMonad and is built by adding Bind and Unit extension methods to Task<T> 
 // Monads are a two-layer pattern, so we only use ProgrammingParadigms and Application layers.
+// This file is not used by the ALA version
 
-
-#define AsyncAwaitVersion  // We implemented both async/await and ContinueWith versions of this monad. Use this to select which one is used.
 // #define DebugThreads // enable to get console.WriteLines of the input values, output values and thread IDs of the monads
 
 
@@ -14,7 +13,7 @@ using System.Threading.Tasks;
 
 
 
-namespace ProgrammingParadigms
+namespace Monad.AsynAwait
 {
 
 
@@ -24,9 +23,6 @@ namespace ProgrammingParadigms
         {
             return new Task<T>(() => value);
         }
-
-
-#if AsyncAwaitVersion
 
 
 #if !DebugThreads
@@ -53,14 +49,24 @@ namespace ProgrammingParadigms
             Console.WriteLine($"Output value from monad is {result}");
             return result;
         }
-
-
 #endif
+    }
+}
 
 
-#else // not AsyncAwaitVersion
 
-        // Version of Bind function using ConinueWith
+namespace Monad.ContinueWith
+{
+    // Version of Bind function using ConinueWith
+
+
+    public static class TaskMonadExtensionMethods
+    {
+        public static Task<T> ToTask<T>(this T value)
+        {
+            return new Task<T>(() => value);
+        }
+
 
 
 #if !DebugThreads
@@ -110,7 +116,6 @@ namespace ProgrammingParadigms
             return tcs.Task;
         }
 
-#endif
 
 
 #endif

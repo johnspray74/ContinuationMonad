@@ -1,13 +1,22 @@
-﻿#define AsyncAwaitVersion   // Selects between version written using async/await and version using .Contunewith
+﻿// #define AsyncAwaitVersion   // Selects between version written using async/await and version using .Contunewith
 // #define DebugThreads     // Write out the thread ID in different places so we can ensure everything runs on the same thread (Don't want multithreading!)
-// #define ALA              // Selects ALA version designed to run identical application layer
+#define ALA              // Selects ALA version designed to run identical application layer
 
 // This code is wrtten as example code for chapter 3 section on moands in the online book at abstractionlayeredarchitecture.com
 // See that website for full discussion of the comparison between ALA and monads
 
+#if ALA
 using DomainAbstractions;
 using ProgrammingParadigms;
 using Foundation;
+#else
+#if AsyncAwaitVersion
+using Monad.AsynAwait;
+#else
+using Monad.ContinueWith;
+#endif
+#endif
+
 using Nito.AsyncEx;
 using System;
 using System.Threading.Tasks;

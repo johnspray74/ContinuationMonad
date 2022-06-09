@@ -2,9 +2,10 @@
 
 namespace ProgrammingParadigms
 {
-    // Think of this interface as a bit like how IEnumarable is just used to get an IEnumerator, in this case we are going to get a Task.
-    // Except this case the interface works the other way around and we will push the Task across.
-    // That way WireTo works in the same direction as data flows, which is less confusing
+    // used only by the ALA version
+    // Used as the main Programming Paradigm interface for the ports of the ALA version
+    // This interface is implemented by the data destinations
+    // The WireIn function wires up ports of this type. It wires them in the same direction as the dataflow
     public interface IContinuation<T>
     {
         void PushTask(Task<T> task);

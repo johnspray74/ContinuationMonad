@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace DomainAbstractions
 {
 
-
+    // This is only used by the ALA version
     public class Continuation<T, U> : IContinuable<T>, IContinuation<T> // input port
     {
         readonly Func<T, Task<U>> function;
@@ -21,9 +21,7 @@ namespace DomainAbstractions
 
         async void IContinuation<T>.PushTask(Task<T> previousTask)
         {
-            Console.WriteLine("PushTask");
             var result = await previousTask;
-            Console.WriteLine($"PushTask {result}");
             next.PushTask(function(result));
             // next.PushTask(function(await previousTask));
         }
