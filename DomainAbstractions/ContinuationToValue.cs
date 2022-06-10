@@ -31,7 +31,7 @@ namespace DomainAbstractions
 
     public static class ContinueWithExtensionMethod
     {
-        public static ContinuationToValue<T> ToValue<T>(this IContinuable<T> source, Action<T> action)
+        public static ContinuationToValue<T> ToValue<T>(this IBindable<T> source, Action<T> action)
         {
             return (ContinuationToValue<T>)source.WireIn(new ContinuationToValue<T>(action));
         }

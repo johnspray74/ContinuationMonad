@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace DomainAbstractions
 {
 
-    public class ValueToContinuable<T> : IContinuable<T>
+    public class ValueToContinuable<T> : IBindable<T>
     {
         readonly T value;
 #pragma warning disable CS0649 // Field 'Continuation<T, U>.next' is never assigned to, and will always have its default value null

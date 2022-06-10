@@ -7,7 +7,7 @@ namespace DomainAbstractions
 {
 
     // This is only used by the ALA version
-    public class Continuation<T, U> : IContinuable<T>, IContinuation<T> // input port
+    public class Continuation<T, U> : IBindable<T>, IContinuation<T> // input port
     {
         readonly Func<T, Task<U>> function;
 #pragma warning disable CS0649 // Field 'Continuation<T, U>.next' is never assigned to, and will always have its default value null
@@ -31,9 +31,9 @@ namespace DomainAbstractions
     public static class BindExtensionMethod
     {
 
-        public static IContinuable<U> Bind<T, U>(this IContinuable<T> source, Func<T, Task<U>> function)
+        public static IBindable<U> Bind<T, U>(this IBindable<T> source, Func<T, Task<U>> function)
         {
-            return (IContinuable<U>)source.WireIn(new Continuation<T, U>(function));
+            return (IBindable<U>)source.WireIn(new Continuation<T, U>(function));
         }
     }
 
