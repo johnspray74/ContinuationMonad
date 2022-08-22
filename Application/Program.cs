@@ -58,7 +58,9 @@ namespace Application
 
 
 
-
+// First create two function that take an int and return a Task<int>
+// Both these functions take time to do their job
+// We will be writing sample applications that compose these two functions.
 
 
 
@@ -84,7 +86,7 @@ namespace Application
 
 
 
-        // This function does I/O and then returns x plus whatever was input
+        // This function does I/O and then returns x plus whatever was inputted
         // It returns immediately with a task representing the future result
         private static Task<int> function2(int x)
         {
