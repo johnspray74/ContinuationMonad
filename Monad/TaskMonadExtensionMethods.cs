@@ -21,7 +21,8 @@ namespace Monad.AsynAwait
     {
         public static Task<T> ToTask<T>(this T value)
         {
-            return new Task<T>(() => value);
+            return new Task<T>(() => value);     // creates a task that needs to be told to run 
+            // return Task.FromResult(value);    // creates an already completed task
         }
 
 
@@ -65,7 +66,8 @@ namespace Monad.ContinueWith
     {
         public static Task<T> ToTask<T>(this T value)
         {
-            return new Task<T>(() => value);
+            return new Task<T>(() => value);     // creates a task that needs to be told to run 
+            // return Task.FromResult(value);    // creates an already completed task
         }
 
 

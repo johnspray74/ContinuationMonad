@@ -1,6 +1,6 @@
 ﻿// #define ImperativeVersion      // version that composes the three functions in imperative style 
-#define ImperativeVersionUsingUnwrap      // version that composes the three functions in imperative style 
-// #define AsyncAwaitVersion   // Version where composed lambad functions use async/await
+// #define ImperativeVersionUsingUnwrap      // version that composes the three functions in imperative style 
+#define AsyncAwaitVersion   // Version where composed lambad functions use async/await
 // #define MonadVersion        // Version where composed lambad functions use .Contunewith
 // #define ALAVersion                    // ALA Version uses domain abstractions but uses a Bind function to have identical application layer code
 #define DebugThreads        // Write out the thread ID in different places so we can ensure everything runs on the same thread (Don't want multithreading!)
@@ -56,14 +56,25 @@ namespace Application
 
 
 
+        static async Task Application()
+        {
+            // many different examples of ComposedFunction are below under #ifs
+            ComposedFunction();    
+            Console.WriteLine("Program will be running for 10s");
+            await Task.Delay(10000);  // Gives the CommposedFunction time to finish
+#if DebugThreads
+            Console.WriteLine($"Program end thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+            Console.WriteLine("Press any key to finish program running");
+            Console.ReadKey();  // This blocks the main thread, which is the one used for running the async tasks above, so don't execute this until other tasks are completed
+        }
 
 
-// First create two function that take an int and return a Task<int>
-// Both these functions take time to do their job
-// We will be writing sample applications that compose these two functions.
 
 
-
+        // First create two function that take an int and return a Task<int>
+        // Both these functions take time to do their job
+        // We will be writing sample applications that compose these two functions.
 
         // This function does a delay and then returns x+2
         // It returns immediately with a task representing the future result
@@ -109,19 +120,15 @@ namespace Application
 
 
 
-
-
-
-
-
-
 #if ImperativeVersion
-        static async Task Application()
+// This is an imperative version that composes the two functions into a single function
+// Notice how it indents for every ContinueWith, which is not practical (triangle hell)
+
+        static void ComposedFunction()
         {
 #if DebugThreads
             Console.WriteLine($"Console thread: {Thread.CurrentThread.ManagedThreadId}");
 #endif
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             function1(1)
             .ContinueWith(task1 =>
             {
@@ -134,11 +141,6 @@ namespace Application
                     Console.WriteLine($"Final result is {task2.Result}.");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }, TaskScheduler.FromCurrentSynchronizationContext());
-#pragma warning restore CS4014
-            Console.WriteLine("Program will be running for 10s");
-            await Task.Delay(10000); // Gives the asynchronous functions time to run 
-            Console.WriteLine("Press any key to finish program running");
-            Console.ReadKey();  // This blocks the main thread, which is the one used for running the async tasks above, so don't execute this until other tasks are completed
         }
 #endif
 
@@ -213,12 +215,13 @@ namespace Application
 
 
 #if ImperativeVersionUsingUnwrap
-        static async Task Application()
+        // This is another imperative version that composes the two functions into a single function
+        // It uses ContinueWith with Unwrap which avaois indenting for every new continuation
+        static void ComposedFunction()
         {
 #if DebugThreads
             Console.WriteLine($"Console thread: {Thread.CurrentThread.ManagedThreadId}");
 #endif
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             function1(1)
             .ContinueWith(task3 =>
             {
@@ -231,13 +234,12 @@ namespace Application
 #endif
                 Console.WriteLine($"Final result is {task5.Result}.");
             }, TaskScheduler.FromCurrentSynchronizationContext());
-#pragma warning restore CS4014
-            Console.WriteLine("Program will be running for 10s");
-            await Task.Delay(10000); // Gives the asynchronous functions time to run 
-            Console.WriteLine("Press any key to finish program running");
-            Console.ReadKey();  // This blocks the main thread, which is the one used for running the async tasks above, so don't execute this until other tasks are completed
         }
 #endif
+
+
+
+
 
 
 
@@ -326,13 +328,12 @@ namespace Application
         // This is the version using async/await
 
 
-        static async Task Application()
+        static void ComposedFunction()
         {
 #if DebugThreads
             Console.WriteLine($"Console thread: {Thread.CurrentThread.ManagedThreadId}");
 #endif
             var program = 1.ToTask();
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             program.Bind(async (x) => 
             { 
 #if DebugThreads
@@ -364,12 +365,6 @@ namespace Application
 #endif
                 Console.WriteLine($"Final result is {x.Result}.");
             }, TaskScheduler.FromCurrentSynchronizationContext());
-#pragma warning restore CS4014
-                program.RunSynchronously();
-            Console.WriteLine("Program will be running for 10s");
-            await Task.Delay(10000); // Gives the asynchronous functions a chance to 
-            Console.WriteLine("Press any key to finish program running");
-            Console.ReadKey();  // This blocks the main thread, which is the one used for running the async tasks above, so don't execute this until other tasks are completed
         }
 #endif
 
@@ -377,18 +372,50 @@ namespace Application
 
 
 
-// TBD use function1 and function 2 in this:
+
+
+
+
+
+        // TBD use function1 and function 2 in this:
 
 #if MonadVersion
         // This is the version using ContinueWith
 
-        static async Task Application()
+        static void ComposedFunction()
         {
 #if DebugThreads
             Console.WriteLine($"Console thread: {Thread.CurrentThread.ManagedThreadId}");
 #endif
             var program = 1.ToTask();
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            program.Bind(function1)
+            .Bind(function2)
+            .ContinueWith((x) => 
+            {
+#if DebugThreads
+                Console.WriteLine($"Final thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+                Console.WriteLine($"Final result is {x.Result}.");
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+            program.RunSynchronously();
+        }
+
+#endif
+
+
+
+
+
+
+#if MonadVersionDelete
+        // This is the version using ContinueWith
+
+        static void ComposedFunction()
+        {
+#if DebugThreads
+            Console.WriteLine($"Console thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+            var program = 1.ToTask();
             program.Bind((x) =>
             {
 #if DebugThreads
@@ -410,7 +437,7 @@ namespace Application
                 Console.WriteLine($"Value is {x}. Please enter a number to be added.");
                 string line = null;
                 return Task.Run(() => line = Console.ReadLine()).ContinueWith(
-                    (t)=>{
+                    (t) => {
 #if DebugThreads
                         Console.WriteLine($"Second function thread: {Thread.CurrentThread.ManagedThreadId}");
 #endif
@@ -424,17 +451,10 @@ namespace Application
 #endif
                     Console.WriteLine($"Final result is {x.Result}.");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             program.RunSynchronously();
-            Console.WriteLine("Program will be running for 10s");
-            await Task.Delay(10000);
-            Console.WriteLine($"Program end thread: {Thread.CurrentThread.ManagedThreadId}");
-            Console.WriteLine("Press any key to finish program running");
-            Console.ReadKey();  // This blocks the main thread, which is the one used for running the async tasks above, so don't execute this until other tasks are completed
         }
 
 #endif
-
 
 
 
@@ -502,7 +522,7 @@ namespace Application
 
 
 
-#if MonadVersion2
+#if MonadVersionDelete
         // This is the version using ContinueWith (and TaskCompletionSource which is redundant)
 
         static async Task Application()
