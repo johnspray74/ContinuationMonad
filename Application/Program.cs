@@ -1,6 +1,6 @@
 ﻿// #define ImperativeVersion      // version that composes the three functions in imperative style 
 // #define ImperativeVersionUsingUnwrap      // version that composes the three functions in imperative style 
-#define AsyncAwaitVersion   // Version where composed lambad functions use async/await
+#define MonadAsyncAwaitVersion   // Version where composed lambad functions use async/await
 // #define MonadVersion        // Version where composed lambad functions use .Contunewith
 // #define ALAVersion                    // ALA Version uses domain abstractions but uses a Bind function to have identical application layer code
 #define DebugThreads        // Write out the thread ID in different places so we can ensure everything runs on the same thread (Don't want multithreading!)
@@ -15,7 +15,7 @@ using DomainAbstractions;
 using ProgrammingParadigms;
 using Foundation;
 #endif
-#if AsyncAwaitVersion
+#if MonadAsyncAwaitVersion
 using Monad.AsynAwait;
 #endif
 #if MonadVersion
@@ -55,11 +55,13 @@ namespace Application
         }
 
 
+        // The Application function calls one of many different examples of ComposedFunction below under #ifs
+        // The UI thread needs to be kept running, but not block itself so that ComposedFunction can complete.
+        // To do that we simply put in a 10 s delay.
 
         static async Task Application()
         {
-            // many different examples of ComposedFunction are below under #ifs
-            ComposedFunction();    
+            ComposedFunction();
             Console.WriteLine("Program will be running for 10s");
             await Task.Delay(10000);  // Gives the CommposedFunction time to finish
 #if DebugThreads
@@ -120,9 +122,45 @@ namespace Application
 
 
 
+
+
+
+        private static async Task<int> function1Async(int x)
+        { 
+#if DebugThreads
+            Console.WriteLine($"First function thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+            await Task.Delay(3000);
+#if DebugThreads
+    Console.WriteLine($"First function thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+            return x + 2; 
+        }
+
+
+
+
+        private static async Task<int> function2Async(int x)
+        {
+#if DebugThreads
+            Console.WriteLine($"Second function thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+            Console.WriteLine($"Value is {x}. Please enter a number to be added.");
+            string line = null;
+            await Task.Factory.StartNew(() => line = Console.ReadLine(), CancellationToken.None, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+#if DebugThreads
+    Console.WriteLine($"Second function thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+            return x + int.Parse(line);
+        }
+
+
+
+
+
 #if ImperativeVersion
 // This is an imperative version that composes the two functions into a single function
-// Notice how it indents for every ContinueWith, which is not practical (triangle hell)
+// Notice how it indents for every ContinueWith, which is not practical (leads triangle hell for longer chains of functions)
 
         static void ComposedFunction()
         {
@@ -310,61 +348,65 @@ namespace Application
 
 
 
-        // The application functions compose two functions using the Continuation monad.
-        // The Continuation monad consists of Task<T> plus the Totask extension method plus the Bind extension method (both of which are defined in the programming paradigms layer folder)
-        // First it creates a source Task with the value 1. Then the first function adds 2, then the second function adds a number from the console. 
-        // The thing is, because we are using the Coninuation monad, these two functions are allowed to take as much time as they want (be asynchronous).
+        // This function composes two asynchronous functions using the Task monad Bind function.
+        // The task monad consists of the Task<T> type plus the ToTask extension method plus the Bind extension method (both of which are defined in the Monad folder)
+        // First it creates a source Task with the value 1. Then the first function delays 3 s and adds 2, then the second function inputs from the console and adds the input. 
+        // The thing is, because we are using the Task monad, these two functions run on the UI thread and can take as much time as they want
+        // but they don't block the UI thread.
         // To demo that, the first function does a delay, and the second function waits for Console input.
-        // What the monad does is, despite these functions taking time and returning a Task object instead of an immediate result, allows you to compose them as if they were functions that just return a result. You just have to use the Bind function to compose them.
-        // And the function must return Task<U> instead of U.
-        // The monad code in the programming paradigms layer takes care of making everything work by providing two extension methiods, Bind() and ToTask().
+        // What the monad does is, despite these functions taking time and returning a Task object instead of an immediate result, is allows you to compose them as if they were
+        // normal functions that just return a result. You just have to use the Bind function to compose them.
+        // And the functions must return Task<U> instead of U.
+        // The code in the Bind function in the Monad folder takes care of making everything work.
         // There is no blocking of the main thread in this program until it hits the final ReadKey.
-        // Everything runs on a single thread.
+        // Everything runs on the UI thread.
 
         // There are two versions - the first version uses async/await. If you are not familiar with async/await then use the second version which uses ContinueWith instead.
         // Each version has a verbose version that Console.WriteLines stuff to see what is going on.
 
-#if AsyncAwaitVersion
-        // This is the version using async/await
+
+#if MonadAsyncAwaitVersion
+        // This is the Monad version using async/await - function1 and function2 are async functions using await
 
 
         static void ComposedFunction()
         {
-#if DebugThreads
-            Console.WriteLine($"Console thread: {Thread.CurrentThread.ManagedThreadId}");
-#endif
             var program = 1.ToTask();
-            program.Bind(async (x) => 
-            { 
-#if DebugThreads
-                Console.WriteLine($"First function thread: {Thread.CurrentThread.ManagedThreadId}");
-#endif
-                await Task.Delay(3000); 
-#if DebugThreads
-                Console.WriteLine($"First function thread: {Thread.CurrentThread.ManagedThreadId}");
-#endif
-                return x + 2; 
-            })
-            .Bind(async (x) =>
+            program
+            .Bind(function1Async)
+            .Bind(function2Async)
+            .ContinueWith((x) =>
             {
-#if DebugThreads
-                Console.WriteLine($"Second function thread: {Thread.CurrentThread.ManagedThreadId}");
-#endif
-                Console.WriteLine($"Value is {x}. Please enter a number to be added.");
-                string line = null;
-                await Task.Run(() => line = Console.ReadLine());
-#if DebugThreads
-                Console.WriteLine($"Second function thread: {Thread.CurrentThread.ManagedThreadId}");
-#endif
-                return x + int.Parse(line);
-            })
-            .ContinueWith((x) => 
-            { 
 #if DebugThreads
                 Console.WriteLine($"Final thread: {Thread.CurrentThread.ManagedThreadId}");
 #endif
                 Console.WriteLine($"Final result is {x.Result}.");
             }, TaskScheduler.FromCurrentSynchronizationContext());
+            program.RunSynchronously();
+        }
+#endif
+
+
+
+
+#if AsyncAwaitVersionDelete
+        // This is the version using async/await
+
+
+        static void ComposedFunction()
+        {
+            var program = 1.ToTask();
+            program
+            .Bind(function1Async)
+            .Bind(function2Async)
+            .ContinueWith((x) =>
+            {
+#if DebugThreads
+                Console.WriteLine($"Final thread: {Thread.CurrentThread.ManagedThreadId}");
+#endif
+                Console.WriteLine($"Final result is {x.Result}.");
+            }, TaskScheduler.FromCurrentSynchronizationContext());
+            program.RunSynchronously();
         }
 #endif
 
@@ -374,13 +416,8 @@ namespace Application
 
 
 
-
-
-
-        // TBD use function1 and function 2 in this:
-
 #if MonadVersion
-        // This is the version using ContinueWith
+        // This is the Monad non-async/await version - function1 and function2 contain a ContinueWith
 
         static void ComposedFunction()
         {
